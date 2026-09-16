@@ -21,8 +21,10 @@
 
   <!-- Site Header -->
   <header class="site-header">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <button class="icon-btn" id="btn-mobile-menu" style="display: none;" title="Toggle Sidebar">☰</button>
+    <div class="header-left">
+      <button class="icon-btn mobile-menu-btn" id="btn-mobile-menu" aria-label="Open Navigation Menu">
+        <span>☰</span>
+      </button>
       <a href="#" class="header-brand">
         <div class="brand-badge-icon">
           <span style="font-weight: 900; font-size: 1.1rem; color: #38bdf8;">JS</span>
@@ -77,12 +79,19 @@
     </div>
   </header>
 
+  <!-- Mobile Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <!-- App Layout -->
   <div class="app-container">
     
     <!-- Sidebar Navigation & Filters -->
     <aside class="app-sidebar" id="app-sidebar">
       <div class="sidebar-header">
+        <div class="sidebar-mobile-title-bar">
+          <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Navigation & Filters</span>
+          <button class="icon-btn btn-close-sidebar" id="btn-close-sidebar" aria-label="Close Sidebar">✕</button>
+        </div>
         <div class="sidebar-search-box">
           <span class="sidebar-search-icon">🔍</span>
           <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search 200 questions, concepts..." />

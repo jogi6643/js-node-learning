@@ -533,3 +533,124 @@ pre.code-block {
   font-weight: 700;
   color: var(--text-secondary);
 }
+
+/* ==========================================================================
+   Mobile Responsive Rules for Components
+   ========================================================================== */
+@media (max-width: 768px) {
+  .question-card {
+    padding: 1.25rem 1.15rem;
+    border-radius: var(--radius-md);
+  }
+
+  .card-top-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .card-title-group {
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .card-actions {
+    align-self: flex-end;
+    margin-top: -0.25rem;
+  }
+
+  .q-title {
+    font-size: 1.05rem;
+  }
+
+  .card-badges {
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    padding: 0.18rem 0.5rem;
+  }
+
+  .short-answer-box {
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+  }
+
+  .deep-dive-toggle-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .detail-block {
+    padding: 1rem 1.15rem;
+  }
+
+  .detail-text {
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .code-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .code-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  pre.code-block {
+    padding: 0.85rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .modal-window {
+    margin: 0.5rem;
+    max-height: 94vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 1.15rem 1.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .content-heading {
+    font-size: 1.2rem;
+  }
+
+  .question-card {
+    padding: 1rem 0.85rem;
+  }
+
+  .q-title {
+    font-size: 0.98rem;
+  }
+
+  .short-answer-box {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.85rem;
+  }
+}

@@ -946,10 +946,26 @@
       if (btnQuiz) btnQuiz.addEventListener('click', () => this.practiceEngine.startQuiz());
 
       const btnMobileMenu = document.getElementById('btn-mobile-menu');
+      const btnCloseSidebar = document.getElementById('btn-close-sidebar');
       const sidebar = document.getElementById('app-sidebar');
-      if (btnMobileMenu && sidebar) {
-        btnMobileMenu.addEventListener('click', () => sidebar.classList.toggle('open'));
-      }
+      const backdrop = document.getElementById('sidebar-backdrop');
+
+      const openSidebar = () => {
+        if (sidebar) sidebar.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+
+      const closeSidebar = () => {
+        if (sidebar) sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      };
+
+      if (btnMobileMenu) btnMobileMenu.addEventListener('click', openSidebar);
+      if (btnCloseSidebar) btnCloseSidebar.addEventListener('click', closeSidebar);
+      if (backdrop) backdrop.addEventListener('click', closeSidebar);
+      this.closeMobileSidebar = closeSidebar;
     }
 
     applyTheme(theme) {
@@ -1054,6 +1070,9 @@
       this.selectedCategory = cat;
       this.renderCategorySidebar();
       this.renderQuestions();
+      if (window.innerWidth <= 1024 && this.closeMobileSidebar) {
+        this.closeMobileSidebar();
+      }
     }
 
     getFilteredQuestions() {

@@ -415,3 +415,104 @@
   font-size: 0.92rem;
   line-height: 1.65;
 }
+
+/* ==========================================================================
+   Mobile Responsive Rules for Visualizers
+   ========================================================================== */
+@media (max-width: 890px) {
+  .visualizer-section {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .visualizer-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .visualizer-selector-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .viz-tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  .event-loop-board {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .loop-queues-panel {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .queue-column {
+    min-height: 150px;
+    padding: 0.75rem;
+  }
+
+  .loop-controls {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .btn-viz-control {
+    flex: 1 1 calc(50% - 0.4rem);
+    justify-content: center;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.76rem;
+  }
+
+  .system-diagram-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .flow-node {
+    min-width: 120px;
+    padding: 0.95rem 0.75rem;
+  }
+
+  .flow-node-title {
+    font-size: 0.82rem;
+  }
+
+  .flow-node-desc {
+    font-size: 0.68rem;
+  }
+
+  .diagram-explanation-box {
+    padding: 0.95rem 1rem;
+    font-size: 0.86rem;
+  }
+
+  .diagram-step-title {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .loop-queues-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-viz-control {
+    flex: 1 1 100%;
+  }
+
+  .event-loop-ticker {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+  }
+}
+
