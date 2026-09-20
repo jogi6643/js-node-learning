@@ -222,7 +222,7 @@
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) return JSON.parse(saved);
       } catch (e) {}
-      return { completed: {}, bookmarked: {}, weak: {}, lang: 'en', theme: 'dark' };
+      return { completed: {}, bookmarked: {}, weak: {}, lang: 'hinglish', theme: 'dark', mode: 'easy' };
     }
     save() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch (e) {}
@@ -248,8 +248,10 @@
       return !!this.state.weak[id];
     }
     isWeak(id) { return !!this.state.weak[id]; }
+    setMode(mode) { this.state.mode = mode; this.save(); }
+    getMode() { return this.state.mode || 'easy'; }
     setLanguage(lang) { this.state.lang = lang; this.save(); }
-    getLanguage() { return this.state.lang || 'en'; }
+    getLanguage() { return this.state.lang || 'hinglish'; }
     setTheme(theme) { this.state.theme = theme; this.save(); }
     getTheme() { return this.state.theme || 'dark'; }
     getStats(jsQuestions, nodeQuestions) {
@@ -775,8 +777,12 @@
     const isDone = state.isCompleted(q.id);
     const isBookmarked = state.isBookmarked(q.id);
     const isWeak = state.isWeak(q.id);
+    const mode = state.getMode ? state.getMode() : 'easy';
     const priorityBadgeClass = q.priority === 'Must Know' ? 'badge-priority-must-know' : 'badge-priority-high';
     const diffBadgeClass = q.difficulty === 'Advanced' ? 'badge-difficulty-advanced' : 'badge-difficulty-intermediate';
+
+    const easyDef = q.easyDefinition;
+    const whatText = easyDef ? (currentLang === 'hinglish' ? (easyDef.whatIsItHi || easyDef.whatIsIt) : easyDef.whatIsIt) : q.shortAnswer;
 
     return `
       <div class="question-card ${isDone ? 'status-completed' : ''} ${q.priority === 'Must Know' ? 'priority-must-know' : ''}" id="card-${q.id}" data-id="${q.id}">
@@ -804,14 +810,70 @@
           <span class="badge badge-topic">${q.category}</span>
         </div>
 
-        <div class="short-answer-box">
-          <div class="short-answer-label"><span>⚡ 30-Second Interview Pitch</span></div>
-          <div>${q.shortAnswer}</div>
-        </div>
+        ${easyDef ? `
+          <!-- 💡 Easy Explanation Box (Asaan Bhasha & Analogy) -->
+          <div class="easy-explanation-box">
+            <div class="easy-header-badge">
+              <span>💡 Asaan Bhasha Mein Samjhein</span>
+            </div>
+            
+            <div class="easy-what-text">
+              ${whatText}
+            </div>
+
+            ${easyDef.analogy ? `
+              <div class="easy-analogy-card">
+                <div class="easy-analogy-label">
+                  <span>🍕 Real-Life Example / Kahani</span>
+                </div>
+                <div class="easy-analogy-text">${easyDef.analogy}</div>
+              </div>
+            ` : ''}
+
+            ${easyDef.keyPoints && easyDef.keyPoints.length ? `
+              <div class="easy-points-card">
+                <div class="easy-points-label">
+                  <span>🔑 3 Yaad Rakhne Wali Baatein (Key Points)</span>
+                </div>
+                <ul class="easy-points-list">
+                  ${easyDef.keyPoints.map(pt => `<li>${pt}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+
+            ${easyDef.interviewLine ? `
+              <div class="easy-interview-card">
+                <div class="easy-interview-label">
+                  <span>🗣️ Interview Answer (Speak Confidently)</span>
+                </div>
+                <div class="easy-interview-quote">"${easyDef.interviewLine}"</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : `
+          <div class="short-answer-box">
+            <div class="short-answer-label"><span>⚡ 30-Second Interview Pitch</span></div>
+            <div>${q.shortAnswer}</div>
+          </div>
+        `}
+
+        ${q.code ? `
+          <div class="code-container" style="margin-top: 0.85rem; margin-bottom: 0.85rem;">
+            <div class="code-header">
+              <span>💻 Chhota Code Example (${q.category})</span>
+              <div class="code-header-actions">
+                <button class="btn-code-action" onclick="window.app.copyCode('${q.id}')">Copy</button>
+                <button class="btn-code-action btn-run-code" onclick="window.app.runSandboxCode('${q.id}')">▶ Run Sandbox</button>
+              </div>
+            </div>
+            <pre class="code-block"><code id="code-${q.id}">${escapeHtml(q.code)}</code></pre>
+            <div class="inline-console-output" id="output-${q.id}"></div>
+          </div>
+        ` : ''}
 
         <div class="deep-dive-container">
           <button class="deep-dive-toggle-btn" id="btn-toggle-${q.id}" onclick="window.app.toggleCardDetails('${q.id}')">
-            <span id="icon-toggle-${q.id}">▶</span> Deep Architectural Breakdown, Hinglish, Code & Interview Strategy
+            <span id="icon-toggle-${q.id}">▶</span> 🔬 Want Senior MNC Deep Dive? (Architecture, Mistakes & Pro Pitch)
           </button>
 
           <div class="deep-dive-content" id="details-${q.id}">
@@ -821,7 +883,7 @@
             </div>
 
             <div class="detail-block" style="${currentLang === 'en' ? 'display: none;' : ''}">
-              <div class="detail-block-title hinglish-title"><span>🇮🇳 Hinglish Explanation (Analogy & Real Life Concept)</span></div>
+              <div class="detail-block-title hinglish-title"><span>🇮🇳 Hinglish Deep Mechanics</span></div>
               <div class="detail-text">${q.hinglishExplanation}</div>
             </div>
 
@@ -829,20 +891,6 @@
               <div class="detail-block-title production-title"><span>🚀 Real-World Production Architecture</span></div>
               <div class="detail-text">${q.productionExample}</div>
             </div>
-
-            ${q.code ? `
-              <div class="code-container">
-                <div class="code-header">
-                  <span>Code Example (${q.category})</span>
-                  <div class="code-header-actions">
-                    <button class="btn-code-action" onclick="window.app.copyCode('${q.id}')">Copy</button>
-                    <button class="btn-code-action btn-run-code" onclick="window.app.runSandboxCode('${q.id}')">▶ Run Sandbox</button>
-                  </div>
-                </div>
-                <pre class="code-block"><code id="code-${q.id}">${escapeHtml(q.code)}</code></pre>
-                <div class="inline-console-output" id="output-${q.id}"></div>
-              </div>
-            ` : ''}
 
             ${q.output ? `
               <div class="output-preview-box">
@@ -852,7 +900,7 @@
             ` : ''}
 
             <div class="detail-block">
-              <div class="detail-block-title mistakes-title"><span>⚠️ Common Mistakes (Why Senior Candidates Get Rejected)</span></div>
+              <div class="detail-block-title mistakes-title"><span>⚠️ Common Mistakes (Why Candidates Get Rejected)</span></div>
               <div class="detail-text">${q.commonMistakes}</div>
             </div>
 
@@ -862,7 +910,7 @@
             </div>
 
             <div class="detail-block">
-              <div class="detail-block-title interview-title"><span>💬 "How to Answer in an Interview" (Strategy & Pitch)</span></div>
+              <div class="detail-block-title interview-title"><span>💬 How to Answer in an Interview (MNC Strategy)</span></div>
               <div class="detail-text">${q.interviewStrategy}</div>
             </div>
           </div>
@@ -871,11 +919,14 @@
     `;
   }
 
-  // 8. MASTER APP CONTROLLER
+  // 8. MASTER APP CONTROLLER (Streamlined & Easy Navigation Engine)
   class InterviewApp {
     constructor() {
       this.dashboardState = new DashboardState();
-      this.activeTab = 'js';
+      this.currentView = 'js-handbook'; // 'js-handbook' | 'node-handbook' | 'questions' | 'comparisons' | 'scenarios' | 'revision'
+      this.readingMode = 'single'; // 'single' (focused chapter reader) | 'all' (scroll all)
+      this.activeTopicId = 'js-1-fundamentals';
+      this.activeQuestionsTab = 'js';
       this.activeFilter = 'all';
       this.selectedCategory = 'all';
       this.searchQuery = '';
@@ -890,6 +941,22 @@
 
     get nodeQuestions() {
       return window.NODE_QUESTIONS || [];
+    }
+
+    get handbookTopics() {
+      return window.HANDBOOK_TOPICS || { js: [], node: [] };
+    }
+
+    get comparisonsData() {
+      return window.COMPARISONS_DATA || [];
+    }
+
+    get seniorScenarios() {
+      return window.SENIOR_SCENARIOS || [];
+    }
+
+    get quickRevisionData() {
+      return window.QUICK_REVISION_DATA || {};
     }
 
     init() {
@@ -908,28 +975,62 @@
       this.attachHeaderEvents();
       this.attachSidebarEvents();
       this.attachHeroEvents();
+      this.attachChapterNavEvents();
+      this.attachKeyboardNav();
 
-      this.renderQuestions();
+      this.updateModeUI(this.dashboardState.getMode());
+      this.switchView('js-handbook');
       this.updateDashboardStats();
-      this.renderCategorySidebar();
     }
 
     attachHeaderEvents() {
-      const tabJs = document.getElementById('tab-btn-js');
-      const tabNode = document.getElementById('tab-btn-node');
-      if (tabJs) tabJs.addEventListener('click', () => this.switchTab('js'));
-      if (tabNode) tabNode.addEventListener('click', () => this.switchTab('node'));
+      // Main navigation tabs
+      const navTabs = [
+        { id: 'tab-btn-js', view: 'js-handbook' },
+        { id: 'tab-btn-node', view: 'node-handbook' },
+        { id: 'tab-btn-questions', view: 'questions' },
+        { id: 'tab-btn-comparisons', view: 'comparisons' },
+        { id: 'tab-btn-scenarios', view: 'scenarios' },
+        { id: 'tab-btn-revision', view: 'revision' }
+      ];
 
+      navTabs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+          el.addEventListener('click', () => this.switchView(item.view));
+        }
+      });
+
+      // Easy Mode vs Deep Mode
+      const btnModeEasy = document.getElementById('btn-mode-easy');
+      const btnModeDeep = document.getElementById('btn-mode-deep');
+      if (btnModeEasy) {
+        btnModeEasy.addEventListener('click', () => {
+          this.dashboardState.setMode('easy');
+          this.updateModeUI('easy');
+          this.renderCurrentView();
+        });
+      }
+      if (btnModeDeep) {
+        btnModeDeep.addEventListener('click', () => {
+          this.dashboardState.setMode('deep');
+          this.updateModeUI('deep');
+          this.renderCurrentView();
+        });
+      }
+
+      // Language switcher (English <-> Hinglish)
       const langBtn = document.getElementById('btn-lang-toggle');
       if (langBtn) {
         langBtn.addEventListener('click', () => {
           const next = this.dashboardState.getLanguage() === 'en' ? 'hinglish' : 'en';
           this.dashboardState.setLanguage(next);
           this.updateLanguageUI(next);
-          this.renderQuestions();
+          this.renderCurrentView();
         });
       }
 
+      // Theme toggle
       const themeBtn = document.getElementById('btn-theme-toggle');
       if (themeBtn) {
         themeBtn.addEventListener('click', () => {
@@ -939,12 +1040,14 @@
         });
       }
 
+      // Practice shortcuts
       const btnMock = document.getElementById('btn-nav-mock');
-      if (btnMock) btnMock.addEventListener('click', () => this.practiceEngine.startMockInterview(this.activeTab));
+      if (btnMock) btnMock.addEventListener('click', () => this.practiceEngine.startMockInterview(this.currentView.includes('node') ? 'node' : 'js'));
 
       const btnQuiz = document.getElementById('btn-nav-quiz');
       if (btnQuiz) btnQuiz.addEventListener('click', () => this.practiceEngine.startQuiz());
 
+      // Mobile sidebar toggle
       const btnMobileMenu = document.getElementById('btn-mobile-menu');
       const btnCloseSidebar = document.getElementById('btn-close-sidebar');
       const sidebar = document.getElementById('app-sidebar');
@@ -968,10 +1071,45 @@
       this.closeMobileSidebar = closeSidebar;
     }
 
+    attachKeyboardNav() {
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (this.currentView === 'js-handbook' || this.currentView === 'node-handbook') {
+          if (e.key === 'ArrowRight') {
+            const list = this.getFilteredHandbook(this.currentView === 'js-handbook' ? 'js' : 'node');
+            const idx = list.findIndex(t => t.id === this.activeTopicId);
+            if (idx >= 0 && idx < list.length - 1) {
+              this.selectTopic(list[idx + 1].id);
+            }
+          } else if (e.key === 'ArrowLeft') {
+            const list = this.getFilteredHandbook(this.currentView === 'js-handbook' ? 'js' : 'node');
+            const idx = list.findIndex(t => t.id === this.activeTopicId);
+            if (idx > 0) {
+              this.selectTopic(list[idx - 1].id);
+            }
+          }
+        }
+      });
+    }
+
     applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       const themeIcon = document.getElementById('theme-icon');
       if (themeIcon) themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    updateModeUI(mode) {
+      const btnModeEasy = document.getElementById('btn-mode-easy');
+      const btnModeDeep = document.getElementById('btn-mode-deep');
+      if (btnModeEasy && btnModeDeep) {
+        if (mode === 'easy') {
+          btnModeEasy.className = 'mode-btn active-easy';
+          btnModeDeep.className = 'mode-btn';
+        } else {
+          btnModeEasy.className = 'mode-btn';
+          btnModeDeep.className = 'mode-btn active-deep';
+        }
+      }
     }
 
     updateLanguageUI(lang) {
@@ -988,69 +1126,598 @@
       }
     }
 
-    switchTab(tab) {
-      if (this.activeTab === tab) return;
-      this.activeTab = tab;
+    switchView(viewName) {
+      this.currentView = viewName;
       this.selectedCategory = 'all';
       this.searchQuery = '';
-      const searchInput = document.getElementById('sidebar-search-input');
-      if (searchInput) searchInput.value = '';
 
-      const tabJs = document.getElementById('tab-btn-js');
-      const tabNode = document.getElementById('tab-btn-node');
-      if (tab === 'js') {
-        tabJs.classList.add('active');
-        tabNode.classList.remove('active');
-        document.getElementById('content-heading-title').textContent = 'JavaScript Senior Interview Questions';
-      } else {
-        tabNode.classList.add('active');
-        tabJs.classList.remove('active');
-        document.getElementById('content-heading-title').textContent = 'Node.js Senior Interview Questions';
+      if (viewName === 'js-handbook') {
+        if (!this.activeTopicId.startsWith('js-')) this.activeTopicId = 'js-1-fundamentals';
+      } else if (viewName === 'node-handbook') {
+        if (!this.activeTopicId.startsWith('node-')) this.activeTopicId = 'node-1-architecture';
       }
 
-      this.renderCategorySidebar();
-      this.renderQuestions();
+      const searchInput = document.getElementById('sidebar-search-input');
+      const mainSearchInput = document.getElementById('main-search-input');
+      if (searchInput) searchInput.value = '';
+      if (mainSearchInput) mainSearchInput.value = '';
+
+      // Update active nav button
+      const navMap = {
+        'js-handbook': 'tab-btn-js',
+        'node-handbook': 'tab-btn-node',
+        'questions': 'tab-btn-questions',
+        'comparisons': 'tab-btn-comparisons',
+        'scenarios': 'tab-btn-scenarios',
+        'revision': 'tab-btn-revision'
+      };
+
+      Object.entries(navMap).forEach(([view, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active', view === viewName);
+      });
+
+      // Update hero banner texts and controls visibility
+      const heroTitle = document.getElementById('hero-main-title');
+      const heroDesc = document.getElementById('hero-main-desc');
+      const viewModeToggle = document.getElementById('view-mode-toggle-group');
+      const btnToggleViz = document.getElementById('hero-btn-toggle-viz');
+      const collapsibleViz = document.getElementById('collapsible-viz-container');
+
+      if (collapsibleViz) collapsibleViz.style.display = 'none';
+
+      if (viewName === 'js-handbook') {
+        if (!this.activeTopicId || !this.activeTopicId.startsWith('js-')) {
+          this.activeTopicId = 'js-fundamentals';
+        }
+        if (heroTitle) heroTitle.textContent = '⚡ JavaScript Core Handbook (24 Topics)';
+        if (heroDesc) heroDesc.textContent = 'Har concept ka seedha matlab, real-life kahani, runnable code sandbox aur MNC interview answers.';
+        if (viewModeToggle) viewModeToggle.style.display = 'inline-flex';
+        if (btnToggleViz) btnToggleViz.style.display = 'inline-flex';
+      } else if (viewName === 'node-handbook') {
+        if (!this.activeTopicId || !this.activeTopicId.startsWith('node-')) {
+          this.activeTopicId = 'node-architecture';
+        }
+        if (heroTitle) heroTitle.textContent = '🟢 Node.js Core Handbook (35 Topics)';
+        if (heroDesc) heroDesc.textContent = 'Libuv internals, streams, clustering, memory leaks aur production scaling patterns.';
+        if (viewModeToggle) viewModeToggle.style.display = 'inline-flex';
+        if (btnToggleViz) btnToggleViz.style.display = 'inline-flex';
+      } else if (viewName === 'comparisons') {
+        if (heroTitle) heroTitle.textContent = '⚖️ 10 Concept Comparison Matrices';
+        if (heroDesc) heroDesc.textContent = 'Side-by-side criteria tables, memory trade-offs aur senior interview takeaways.';
+        if (viewModeToggle) viewModeToggle.style.display = 'none';
+        if (btnToggleViz) btnToggleViz.style.display = 'none';
+      } else if (viewName === 'scenarios') {
+        if (heroTitle) heroTitle.textContent = '🚨 Senior 8+ Years Production Outages Lab';
+        if (heroDesc) heroDesc.textContent = 'Real-world P0 latency spikes, OOM leaks, cache stampede aur graceful shutdown triage playbooks.';
+        if (viewModeToggle) viewModeToggle.style.display = 'none';
+        if (btnToggleViz) btnToggleViz.style.display = 'none';
+      } else if (viewName === 'revision') {
+        if (heroTitle) heroTitle.textContent = '⚡ High-Yield Quick Revision Cheatsheet';
+        if (heroDesc) heroDesc.textContent = 'Last-minute golden rules, memory cards, aur tricky interview traps.';
+        if (viewModeToggle) viewModeToggle.style.display = 'none';
+        if (btnToggleViz) btnToggleViz.style.display = 'none';
+      } else if (viewName === 'questions') {
+        if (heroTitle) heroTitle.textContent = '🎯 200 Questions Interview Bank';
+        if (heroDesc) heroDesc.textContent = '100 JavaScript + 100 Node.js questions categorized with difficulty and runnable sandboxes.';
+        if (viewModeToggle) viewModeToggle.style.display = 'none';
+        if (btnToggleViz) btnToggleViz.style.display = 'none';
+      }
+
+      this.renderSidebar();
+      this.renderCurrentView();
+      this.updateChapterNavUI();
     }
 
-    attachSidebarEvents() {
-      const searchInput = document.getElementById('sidebar-search-input');
-      if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-          this.searchQuery = e.target.value.toLowerCase().trim();
-          this.renderQuestions();
-        });
+    switchTab(tab) {
+      if (tab === 'js') this.switchView('js-handbook');
+      else this.switchView('node-handbook');
+    }
+
+    renderCurrentView() {
+      const heading = document.getElementById('content-heading-title');
+      const countTag = document.getElementById('content-count-tag');
+      const container = document.getElementById('questions-list-container');
+      if (!container) return;
+
+      const lang = this.dashboardState.getLanguage();
+
+      if (this.currentView === 'js-handbook') {
+        const list = this.getFilteredHandbook('js');
+        if (heading) heading.textContent = this.readingMode === 'single' ? '⚡ JavaScript Reading Chapter' : '⚡ All JavaScript Topics';
+        if (countTag) countTag.textContent = `${list.length} Topics`;
+        container.innerHTML = this.renderHandbookList(list, 'js', lang);
+      } else if (this.currentView === 'node-handbook') {
+        const list = this.getFilteredHandbook('node');
+        if (heading) heading.textContent = this.readingMode === 'single' ? '🟢 Node.js Reading Chapter' : '🟢 All Node.js Topics';
+        if (countTag) countTag.textContent = `${list.length} Topics`;
+        container.innerHTML = this.renderHandbookList(list, 'node', lang);
+      } else if (this.currentView === 'questions') {
+        const isJs = this.activeQuestionsTab === 'js';
+        if (heading) heading.textContent = `🎯 100 ${isJs ? 'JavaScript' : 'Node.js'} Questions`;
+        this.renderQuestions();
+      } else if (this.currentView === 'comparisons') {
+        if (heading) heading.textContent = '⚖️ 10 Concept Comparison Matrices';
+        const list = this.getFilteredComparisons();
+        if (countTag) countTag.textContent = `${list.length} Comparisons`;
+        container.innerHTML = this.renderComparisonsList(list);
+      } else if (this.currentView === 'scenarios') {
+        if (heading) heading.textContent = '🚨 Senior Outage Triage Playbooks';
+        const list = this.getFilteredScenarios();
+        if (countTag) countTag.textContent = `${list.length} Scenarios`;
+        container.innerHTML = this.renderScenariosList(list);
+      } else if (this.currentView === 'revision') {
+        if (heading) heading.textContent = '⚡ High-Yield Revision Cheatsheet';
+        if (countTag) countTag.textContent = 'Golden Rules & Traps';
+        container.innerHTML = this.renderRevisionList();
       }
-      document.querySelectorAll('.quick-filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          document.querySelectorAll('.quick-filter-chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          this.activeFilter = chip.getAttribute('data-filter');
-          this.renderQuestions();
-        });
+
+      this.updateChapterNavUI();
+    }
+
+    getFilteredHandbook(type) {
+      const raw = type === 'js' ? this.handbookTopics.js : this.handbookTopics.node;
+      return (raw || []).filter(t => {
+        if (this.searchQuery) {
+          const q = this.searchQuery;
+          const match = t.title.toLowerCase().includes(q) ||
+                        t.category.toLowerCase().includes(q) ||
+                        t.whatIsIt.toLowerCase().includes(q) ||
+                        (t.whatIsItHi && t.whatIsItHi.toLowerCase().includes(q)) ||
+                        t.analogy.toLowerCase().includes(q);
+          if (!match) return false;
+        }
+        return true;
       });
     }
 
-    attachHeroEvents() {
-      const btnRandom = document.getElementById('hero-btn-random');
-      if (btnRandom) btnRandom.addEventListener('click', () => this.scrollToRandomQuestion());
-      const btnMock = document.getElementById('hero-btn-mock');
-      if (btnMock) btnMock.addEventListener('click', () => this.practiceEngine.startMockInterview(this.activeTab));
-      const btnScen = document.getElementById('hero-btn-scenarios');
-      if (btnScen) btnScen.addEventListener('click', () => this.practiceEngine.startScenarioLab());
-      const btnOutput = document.getElementById('hero-btn-output');
-      if (btnOutput) btnOutput.addEventListener('click', () => this.practiceEngine.startOutputLab());
+    getFilteredComparisons() {
+      return (this.comparisonsData || []).filter(c => {
+        if (this.searchQuery) {
+          const q = this.searchQuery;
+          const match = c.title.toLowerCase().includes(q) ||
+                        c.description.toLowerCase().includes(q) ||
+                        c.interviewTakeaway.toLowerCase().includes(q);
+          if (!match) return false;
+        }
+        return true;
+      });
+    }
+
+    getFilteredScenarios() {
+      return (this.seniorScenarios || []).filter(s => {
+        if (this.searchQuery) {
+          const q = this.searchQuery;
+          const match = s.title.toLowerCase().includes(q) ||
+                        s.problemStatement.toLowerCase().includes(q) ||
+                        s.tags.some(t => t.toLowerCase().includes(q));
+          if (!match) return false;
+        }
+        return true;
+      });
+    }
+
+    renderHandbookList(list, type, lang) {
+      if (!list.length) {
+        return `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-text">No topics match "${escapeHtml(this.searchQuery)}"</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem;">Try clearing your search query.</p>
+          </div>
+        `;
+      }
+
+      // Single Topic Focus Mode (Easy, clean, chapter-by-chapter reading)
+      if (this.readingMode === 'single') {
+        const activeIdx = list.findIndex(t => t.id === this.activeTopicId);
+        const currentIdx = activeIdx >= 0 ? activeIdx : 0;
+        const currentTopic = list[currentIdx];
+        if (!currentTopic) return '';
+        this.activeTopicId = currentTopic.id;
+        const prev = currentIdx > 0 ? list[currentIdx - 1] : null;
+        const next = currentIdx < list.length - 1 ? list[currentIdx + 1] : null;
+        return this.renderConceptCard(currentTopic, lang, currentIdx, list.length, type, prev, next);
+      }
+
+      // View All Mode (Continuous scroll)
+      return list.map((topic, idx) => {
+        const prev = idx > 0 ? list[idx - 1] : null;
+        const next = idx < list.length - 1 ? list[idx + 1] : null;
+        return this.renderConceptCard(topic, lang, idx, list.length, type, prev, next);
+      }).join('');
+    }
+
+    selectTopic(id) {
+      this.activeTopicId = id;
+      this.renderSidebar();
+      this.renderCurrentView();
+      this.updateChapterNavUI();
+
+      const card = document.getElementById(`topic-${id}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        card.style.outline = '2px solid #38bdf8';
+        setTimeout(() => card.style.outline = 'none', 1800);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (window.innerWidth <= 1024 && this.closeMobileSidebar) {
+        this.closeMobileSidebar();
+      }
+    }
+
+    renderConceptCard(topic, lang, idx, total, type, prev, next) {
+      const what = lang === 'hinglish' ? (topic.whatIsItHi || topic.whatIsIt) : topic.whatIsIt;
+      const why = lang === 'hinglish' ? (topic.whyNeedHi || topic.whyNeed) : topic.whyNeed;
+      const how = lang === 'hinglish' ? (topic.howItWorksHi || topic.howItWorks) : topic.howItWorks;
+      const analogy = lang === 'hinglish' ? (topic.analogyHi || topic.analogy) : topic.analogy;
+
+      return `
+        <article class="concept-page-container question-card" id="topic-${topic.id}">
+          <!-- Breadcrumb & Top Bar -->
+          <div class="concept-breadcrumb">
+            <span>${type === 'js' ? '⚡ JavaScript' : '🟢 Node.js'} Handbook</span>
+            <span>/</span>
+            <span>${topic.category}</span>
+            <span>/</span>
+            <span style="color: var(--text-primary); font-weight: 700;">Topic #${topic.num}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <h2 class="q-title" style="font-size: 1.45rem; cursor: default;">
+              #${topic.num}. ${topic.title}
+            </h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span class="badge badge-topic">${topic.category}</span>
+              <button class="btn-card-action" title="Copy Deep Link" onclick="window.app.copyTopicLink('${topic.id}')">🔗</button>
+            </div>
+          </div>
+
+          <!-- Part 1: What is it? -->
+          <div class="concept-part-card">
+            <div class="concept-part-title">
+              <span class="part-number-badge">1</span> What is it? (2–4 Lines Concise Definition)
+            </div>
+            <div class="concept-part-body" style="font-size: 1.05rem; line-height: 1.6; color: var(--text-primary); font-weight: 500;">
+              ${what}
+            </div>
+          </div>
+
+          <!-- Part 2: Why do we need it? -->
+          <div class="concept-part-card">
+            <div class="concept-part-title">
+              <span class="part-number-badge">2</span> Why do we need it? (Real Problem It Solves)
+            </div>
+            <div class="concept-part-body">
+              ${why}
+            </div>
+          </div>
+
+          <!-- Part 3: How does it work internally? -->
+          <div class="concept-part-card">
+            <div class="concept-part-title">
+              <span class="part-number-badge">3</span> How does it work internally? (Step-by-Step Mechanics)
+            </div>
+            <div class="concept-part-body">
+              ${how}
+            </div>
+          </div>
+
+          <!-- Part 4: Important Components -->
+          ${topic.components && topic.components.length ? `
+            <div class="concept-part-card">
+              <div class="concept-part-title">
+                <span class="part-number-badge">4</span> Important Components Involved
+              </div>
+              <div class="components-tags-grid">
+                ${topic.components.map(comp => `<div class="component-tag-pill">⚙️ ${comp}</div>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Part 5: Real-Life Analogy -->
+          <div class="concept-analogy-box">
+            <div class="analogy-header-badge">
+              <span>🍕 Easy Real-Life Analogy (Everyday Story Connected to Code)</span>
+            </div>
+            <div class="analogy-text-content">
+              ${analogy}
+            </div>
+          </div>
+
+          <!-- Part 6: Practical Code Example -->
+          <div class="concept-part-card">
+            <div class="concept-part-title">
+              <span class="part-number-badge">6</span> Practical Backend Code Example
+            </div>
+            <div class="code-container" style="margin-top: 0.65rem;">
+              <div class="code-header">
+                <span>Code Example (${topic.title})</span>
+                <div class="code-header-actions">
+                  <button class="btn-code-action" onclick="window.app.copyCode('${topic.id}')">Copy</button>
+                  <button class="btn-code-action btn-run-code" onclick="window.app.runSandboxCode('${topic.id}')">▶ Run in Sandbox</button>
+                </div>
+              </div>
+              <pre class="code-block"><code id="code-${topic.id}">${escapeHtml(topic.code)}</code></pre>
+              <div class="inline-console-output" id="output-${topic.id}"></div>
+            </div>
+          </div>
+
+          <!-- Part 7: Expected Output -->
+          <div class="output-preview-box">
+            <div class="output-label">7. Expected Console Output</div>
+            <pre class="output-preview-text">${escapeHtml(topic.output)}</pre>
+          </div>
+
+          <!-- Part 8: Step-by-Step Execution -->
+          <div class="concept-part-card">
+            <div class="concept-part-title">
+              <span class="part-number-badge">8</span> Step-by-Step Execution (Why this output appears)
+            </div>
+            <div class="execution-step-list">
+              ${(topic.stepByStep || '').split('\n').filter(s => s.trim()).map(step => `
+                <div class="execution-step-item">
+                  <span class="step-badge-num">✓</span>
+                  <div>${escapeHtml(step)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Interview Answer Section -->
+          ${topic.interview ? `
+            <div class="interview-answer-box" style="margin-top: 1.25rem;">
+              <div class="interview-section-header">
+                <span>🗣️ What to Say in an MNC Technical Interview</span>
+              </div>
+              
+              <div class="interview-pitch-speech">
+                "${topic.interview.pitch}"
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div class="detail-block">
+                  <div class="detail-block-title interview-title"><span>📌 Short Answer (10–15 Seconds)</span></div>
+                  <div class="detail-text">${topic.interview.shortAnswer}</div>
+                </div>
+                <div class="detail-block">
+                  <div class="detail-block-title deep-title"><span>🔬 Detailed Architectural Explanation</span></div>
+                  <div class="detail-text">${topic.interview.detailedAnswer}</div>
+                </div>
+              </div>
+
+              ${topic.interview.followUps && topic.interview.followUps.length ? `
+                <div class="detail-block" style="margin-top: 1rem;">
+                  <div class="detail-block-title followup-title"><span>🎯 Common Follow-Ups Asked by Interviewers</span></div>
+                  <ul style="padding-left: 1.25rem; margin-top: 0.4rem; color: var(--text-secondary); line-height: 1.6;">
+                    ${topic.interview.followUps.map(f => `<li><strong>${escapeHtml(f)}</strong></li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          <!-- Previous / Next Navigation Bar -->
+          <div class="prev-next-nav">
+            ${prev ? `<button class="btn-nav-topic" onclick="window.app.selectTopic('${prev.id}')">← #${prev.num} ${prev.title}</button>` : '<div></div>'}
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Topic ${topic.num} of ${total}</span>
+            ${next ? `<button class="btn-nav-topic" onclick="window.app.selectTopic('${next.id}')">#${next.num} ${next.title} →</button>` : '<div></div>'}
+          </div>
+        </article>
+      `;
+    }
+
+    renderComparisonsList(list) {
+      if (!list.length) return `<div class="empty-state">No comparison tables match your search.</div>`;
+      return list.map(comp => `
+        <article class="question-card" id="comp-${comp.id}" style="padding: 1.6rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 1.35rem; color: var(--text-primary); font-weight: 800;">${comp.title}</h3>
+            <span class="badge badge-topic">Concept Comparison Matrix</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.55; margin-bottom: 1rem;">${comp.description}</p>
+          
+          <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  ${comp.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${comp.rows.map(r => `
+                  <tr>
+                    ${r.map((cell, idx) => `<td style="${idx === 0 ? 'font-weight: 700; color: var(--text-primary);' : ''}">${cell}</td>`).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 1.25rem; background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 6px; padding: 0.85rem 1rem;">
+            <div style="font-weight: 800; font-size: 0.84rem; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem;">
+              🎯 Senior Interview Takeaway
+            </div>
+            <div style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.55;">
+              ${comp.interviewTakeaway}
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    renderScenariosList(list) {
+      if (!list.length) return `<div class="empty-state">No outage scenarios match your search.</div>`;
+      return list.map((scen, idx) => `
+        <article class="question-card" id="scen-${scen.id}" style="border-left: 4px solid #f43f5e; padding: 1.6rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 1.25rem; color: var(--text-primary); font-weight: 800;">${idx + 1}. ${scen.title}</h3>
+            <span class="badge badge-difficulty-advanced">P0 Production Incident</span>
+          </div>
+
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            ${scen.tags.map(t => `<span class="badge badge-topic">${t}</span>`).join('')}
+          </div>
+
+          <div class="detail-block" style="border-left: 3px solid #ef4444; margin-bottom: 1rem;">
+            <div class="detail-block-title" style="color: #ef4444;">🔥 Incident Symptoms & Problem Statement</div>
+            <div class="detail-text" style="font-size: 0.95rem; line-height: 1.6;">${scen.problemStatement}</div>
+          </div>
+
+          <div class="concept-part-title" style="margin: 1.25rem 0 0.5rem 0;">🔍 Step-by-Step Investigation & Telemetry Procedure</div>
+          <div class="execution-step-list">
+            ${scen.investigationSteps.map(step => `
+              <div class="execution-step-item" style="flex-direction: column; gap: 0.35rem;">
+                <div style="font-weight: 700; color: #38bdf8;">${step.step}</div>
+                <div style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">${step.detail}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="margin-top: 1.25rem; background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22c55e; border-radius: 6px; padding: 0.85rem 1rem;">
+            <div style="font-weight: 800; font-size: 0.84rem; color: #22c55e; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem;">
+              🗣️ How to Pitch This in an 8+ Years MNC Interview
+            </div>
+            <div style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.6; font-style: italic;">
+              "${scen.interviewPitch}"
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    renderRevisionList() {
+      const data = this.quickRevisionData;
+      return `
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- JavaScript Golden Rules -->
+          <div class="question-card" style="padding: 1.6rem; border-left: 4px solid #f59e0b;">
+            <h3 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>⚡ JavaScript Core Golden Rules & Traps</span>
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              ${(data.jsGoldenRules || []).map(r => `
+                <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-weight: 800; color: #fbbf24; font-size: 1rem; margin-bottom: 0.35rem;">✓ ${r.title}</div>
+                  <div style="color: var(--text-primary); font-size: 0.92rem; line-height: 1.55; margin-bottom: 0.5rem;">${r.rule}</div>
+                  <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 0.4rem 0.65rem; border-radius: 4px; font-size: 0.86rem; color: #fca5a5;">
+                    <strong>⚠️ Common Interview Trap:</strong> ${r.trap}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Node.js Golden Rules -->
+          <div class="question-card" style="padding: 1.6rem; border-left: 4px solid #10b981;">
+            <h3 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>🟢 Node.js Core Golden Rules & Traps</span>
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              ${(data.nodeGoldenRules || []).map(r => `
+                <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-weight: 800; color: #34d399; font-size: 1rem; margin-bottom: 0.35rem;">✓ ${r.title}</div>
+                  <div style="color: var(--text-primary); font-size: 0.92rem; line-height: 1.55; margin-bottom: 0.5rem;">${r.rule}</div>
+                  <div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 0.4rem 0.65rem; border-radius: 4px; font-size: 0.86rem; color: #fca5a5;">
+                    <strong>⚠️ Common Interview Trap:</strong> ${r.trap}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Frequent Traps Memory Cards -->
+          <div class="question-card" style="padding: 1.6rem; border-left: 4px solid #38bdf8;">
+            <h3 style="font-size: 1.35rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>🎯 High-Frequency Senior Interview Trap Cards</span>
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+              ${(data.frequentTraps || []).map(t => `
+                <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                  <div style="font-weight: 700; color: #38bdf8; font-size: 0.95rem; margin-bottom: 0.45rem;">❓ ${t.question}</div>
+                  <div style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55;">${t.answer}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    renderSidebar() {
+      const listEl = document.getElementById('sidebar-category-list');
+      const sectionTitle = document.getElementById('sidebar-section-title');
+      if (!listEl) return;
+
+      if (this.currentView === 'js-handbook' || this.currentView === 'node-handbook') {
+        const type = this.currentView === 'js-handbook' ? 'js' : 'node';
+        const topics = this.getFilteredHandbook(type);
+        if (sectionTitle) sectionTitle.textContent = type === 'js' ? '⚡ JS Topics (24)' : '🟢 Node.js Topics (35)';
+
+        listEl.innerHTML = topics.map(t => {
+          const isActive = t.id === this.activeTopicId;
+          const isDone = this.dashboardState.isCompleted(t.id);
+          return `
+            <div class="sidebar-topic-item ${isActive ? 'active' : ''}" onclick="window.app.selectTopic('${t.id}')">
+              <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+                <span class="topic-num-badge">${t.num}</span>
+                <span class="topic-title-text" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</span>
+              </div>
+              ${isDone ? '<span style="color: #22c55e; font-size: 0.85rem; font-weight: 800;">✓</span>' : ''}
+            </div>
+          `;
+        }).join('');
+      } else if (this.currentView === 'questions') {
+        if (sectionTitle) sectionTitle.textContent = 'Categories';
+        this.renderCategorySidebar();
+      } else if (this.currentView === 'comparisons') {
+        if (sectionTitle) sectionTitle.textContent = '⚖️ Comparisons (10)';
+        listEl.innerHTML = this.getFilteredComparisons().map((c, i) => `
+          <div class="sidebar-topic-item" onclick="window.app.jumpToTopic('comp-${c.id}')">
+            <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+              <span class="topic-num-badge">${i + 1}</span>
+              <span class="topic-title-text" title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</span>
+            </div>
+          </div>
+        `).join('');
+      } else if (this.currentView === 'scenarios') {
+        if (sectionTitle) sectionTitle.textContent = '🚨 Outages Lab (6)';
+        listEl.innerHTML = this.getFilteredScenarios().map((s, i) => `
+          <div class="sidebar-topic-item" onclick="window.app.jumpToTopic('scen-${s.id}')">
+            <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+              <span class="topic-num-badge">${i + 1}</span>
+              <span class="topic-title-text" title="${escapeHtml(s.title)}">${escapeHtml(s.title)}</span>
+            </div>
+          </div>
+        `).join('');
+      } else if (this.currentView === 'revision') {
+        if (sectionTitle) sectionTitle.textContent = '⚡ Quick Revision';
+        listEl.innerHTML = `
+          <div class="sidebar-topic-item active" onclick="window.app.renderCurrentView()">
+            <span class="topic-title-text">⚡ JavaScript Golden Rules</span>
+          </div>
+          <div class="sidebar-topic-item" onclick="window.app.renderCurrentView()">
+            <span class="topic-title-text">🟢 Node.js Golden Rules</span>
+          </div>
+          <div class="sidebar-topic-item" onclick="window.app.renderCurrentView()">
+            <span class="topic-title-text">🎯 High-Frequency Traps</span>
+          </div>
+        `;
+      }
     }
 
     renderCategorySidebar() {
       const listEl = document.getElementById('sidebar-category-list');
       if (!listEl) return;
-      const questions = this.activeTab === 'js' ? this.jsQuestions : this.nodeQuestions;
+      const questions = this.activeQuestionsTab === 'js' ? this.jsQuestions : this.nodeQuestions;
       const categoryMap = {};
       questions.forEach(q => { categoryMap[q.category] = (categoryMap[q.category] || 0) + 1; });
 
       let html = `
         <div class="category-nav-item ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="window.app.selectCategory('all')">
-          <span>All Topics</span>
+          <span>All Questions</span>
           <span class="category-count">${questions.length}</span>
         </div>
       `;
@@ -1068,15 +1735,202 @@
 
     selectCategory(cat) {
       this.selectedCategory = cat;
-      this.renderCategorySidebar();
-      this.renderQuestions();
+      this.renderSidebar();
+      this.renderCurrentView();
       if (window.innerWidth <= 1024 && this.closeMobileSidebar) {
         this.closeMobileSidebar();
       }
     }
 
+    attachSidebarEvents() {
+      const searchInput = document.getElementById('sidebar-search-input');
+      const mainSearchInput = document.getElementById('main-search-input');
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          this.searchQuery = e.target.value.toLowerCase().trim();
+          if (mainSearchInput) mainSearchInput.value = e.target.value;
+          this.renderSidebar();
+          this.renderCurrentView();
+        });
+      }
+
+      if (mainSearchInput) {
+        mainSearchInput.addEventListener('input', (e) => {
+          this.searchQuery = e.target.value.toLowerCase().trim();
+          if (searchInput) searchInput.value = e.target.value;
+          this.renderSidebar();
+          this.renderCurrentView();
+        });
+      }
+
+      document.querySelectorAll('.quick-filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.quick-filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          this.activeFilter = chip.getAttribute('data-filter');
+          this.renderCurrentView();
+        });
+      });
+    }
+
+    attachHeroEvents() {
+      // Reading mode toggle (Single Topic Focus vs View All)
+      const btnSingle = document.getElementById('btn-mode-single');
+      const btnAll = document.getElementById('btn-mode-all');
+      if (btnSingle) {
+        btnSingle.addEventListener('click', () => {
+          this.readingMode = 'single';
+          btnSingle.classList.add('active');
+          if (btnAll) btnAll.classList.remove('active');
+          this.renderCurrentView();
+        });
+      }
+      if (btnAll) {
+        btnAll.addEventListener('click', () => {
+          this.readingMode = 'all';
+          btnAll.classList.add('active');
+          if (btnSingle) btnSingle.classList.remove('active');
+          this.renderCurrentView();
+        });
+      }
+
+      // Event Loop collapsible visualizer button
+      const btnToggleViz = document.getElementById('hero-btn-toggle-viz');
+      const vizContainer = document.getElementById('collapsible-viz-container');
+      const vizHeader = document.getElementById('collapsible-viz-header');
+
+      if (btnToggleViz && vizContainer) {
+        btnToggleViz.addEventListener('click', () => {
+          const isHidden = vizContainer.style.display === 'none';
+          vizContainer.style.display = isHidden ? 'block' : 'none';
+          vizContainer.classList.toggle('open', isHidden);
+          if (isHidden) {
+            vizContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+
+      if (vizHeader && vizContainer) {
+        vizHeader.addEventListener('click', () => {
+          vizContainer.style.display = 'none';
+          vizContainer.classList.remove('open');
+        });
+      }
+
+      const btnRandom = document.getElementById('hero-btn-random');
+      if (btnRandom) btnRandom.addEventListener('click', () => this.scrollToRandomQuestion());
+    }
+
+    attachChapterNavEvents() {
+      const dropdown = document.getElementById('chapter-dropdown-select');
+      if (dropdown) {
+        dropdown.addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (this.currentView === 'js-handbook' || this.currentView === 'node-handbook') {
+            this.selectTopic(val);
+          } else {
+            this.jumpToTopic(val);
+          }
+        });
+      }
+
+      const mobileToc = document.getElementById('mobile-btn-toc');
+      if (mobileToc) {
+        mobileToc.addEventListener('click', () => {
+          const sidebar = document.getElementById('app-sidebar');
+          const backdrop = document.getElementById('sidebar-backdrop');
+          if (sidebar) sidebar.classList.add('open');
+          if (backdrop) backdrop.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
+      }
+    }
+
+    updateChapterNavUI() {
+      const dropdown = document.getElementById('chapter-dropdown-select');
+      const prevBtn = document.getElementById('nav-btn-prev');
+      const nextBtn = document.getElementById('nav-btn-next');
+      const counterPill = document.getElementById('chapter-counter-pill');
+      const mobilePrev = document.getElementById('mobile-btn-prev');
+      const mobileNext = document.getElementById('mobile-btn-next');
+      const mobileToc = document.getElementById('mobile-toc-label');
+      const navBar = document.getElementById('chapter-nav-bar');
+      const mobileBar = document.getElementById('mobile-bottom-nav');
+
+      if (!dropdown) return;
+
+      if (this.currentView === 'js-handbook' || this.currentView === 'node-handbook') {
+        const type = this.currentView === 'js-handbook' ? 'js' : 'node';
+        const list = this.getFilteredHandbook(type);
+        if (navBar) navBar.style.display = 'flex';
+        if (mobileBar) mobileBar.style.display = 'flex';
+
+        dropdown.innerHTML = list.map(t => `<option value="${t.id}">#${t.num}. ${escapeHtml(t.title)}</option>`).join('');
+        dropdown.value = this.activeTopicId;
+
+        const activeIdx = list.findIndex(t => t.id === this.activeTopicId);
+        const curIdx = activeIdx >= 0 ? activeIdx : 0;
+        const currentTopic = list[curIdx];
+
+        if (counterPill && currentTopic) {
+          counterPill.textContent = `Topic ${currentTopic.num} of ${list.length}`;
+        }
+        if (mobileToc && currentTopic) {
+          mobileToc.textContent = `📖 Topic ${currentTopic.num} of ${list.length}`;
+        }
+
+        const hasPrev = curIdx > 0;
+        const hasNext = curIdx < list.length - 1;
+
+        if (prevBtn) {
+          prevBtn.disabled = !hasPrev;
+          prevBtn.onclick = () => { if (hasPrev) this.selectTopic(list[curIdx - 1].id); };
+        }
+        if (nextBtn) {
+          nextBtn.disabled = !hasNext;
+          nextBtn.onclick = () => { if (hasNext) this.selectTopic(list[curIdx + 1].id); };
+        }
+        if (mobilePrev) {
+          mobilePrev.disabled = !hasPrev;
+          mobilePrev.onclick = () => { if (hasPrev) this.selectTopic(list[curIdx - 1].id); };
+        }
+        if (mobileNext) {
+          mobileNext.disabled = !hasNext;
+          mobileNext.onclick = () => { if (hasNext) this.selectTopic(list[curIdx + 1].id); };
+        }
+      } else if (this.currentView === 'comparisons') {
+        const list = this.getFilteredComparisons();
+        if (navBar) navBar.style.display = 'flex';
+        if (mobileBar) mobileBar.style.display = 'none';
+        dropdown.innerHTML = list.map((c, i) => `<option value="comp-${c.id}">#${i + 1}. ${escapeHtml(c.title)}</option>`).join('');
+        if (counterPill) counterPill.textContent = `${list.length} Comparisons`;
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+      } else if (this.currentView === 'scenarios') {
+        const list = this.getFilteredScenarios();
+        if (navBar) navBar.style.display = 'flex';
+        if (mobileBar) mobileBar.style.display = 'none';
+        dropdown.innerHTML = list.map((s, i) => `<option value="scen-${s.id}">#${i + 1}. ${escapeHtml(s.title)}</option>`).join('');
+        if (counterPill) counterPill.textContent = `${list.length} Scenarios`;
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+      } else {
+        if (navBar) navBar.style.display = 'flex';
+        if (mobileBar) mobileBar.style.display = 'none';
+        if (counterPill) counterPill.textContent = this.currentView === 'questions' ? '200 Questions' : 'Quick Revision';
+        if (dropdown) {
+          dropdown.innerHTML = this.currentView === 'questions' ?
+            `<option value="js">⚡ JavaScript (100)</option><option value="node">🟢 Node.js (100)</option>` :
+            `<option value="rules">⚡ Golden Rules & Traps</option>`;
+        }
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+      }
+    }
+
     getFilteredQuestions() {
-      const rawList = this.activeTab === 'js' ? this.jsQuestions : this.nodeQuestions;
+      const rawList = this.activeQuestionsTab === 'js' ? this.jsQuestions : this.nodeQuestions;
       return rawList.filter(q => {
         if (this.selectedCategory !== 'all' && q.category !== this.selectedCategory) return false;
         if (this.activeFilter === 'must-know' && q.priority !== 'Must Know') return false;
@@ -1111,7 +1965,48 @@
         return;
       }
       const currentLang = this.dashboardState.getLanguage();
-      container.innerHTML = filtered.map(q => renderQuestionCard(q, this.dashboardState, currentLang)).join('');
+      container.innerHTML = `
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button class="mode-btn ${this.activeQuestionsTab === 'js' ? 'active-easy' : ''}" onclick="window.app.setQuestionsTab('js')">⚡ JavaScript (100)</button>
+          <button class="mode-btn ${this.activeQuestionsTab === 'node' ? 'active-deep' : ''}" onclick="window.app.setQuestionsTab('node')">🟢 Node.js (100)</button>
+        </div>
+      ` + filtered.map(q => renderQuestionCard(q, this.dashboardState, currentLang)).join('');
+    }
+
+    setQuestionsTab(tab) {
+      this.activeQuestionsTab = tab;
+      this.selectedCategory = 'all';
+      this.renderSidebar();
+      this.renderQuestions();
+    }
+
+    jumpToTopic(id) {
+      const targetId = id.startsWith('topic-') || id.startsWith('comp-') || id.startsWith('scen-') ? id : `topic-${id}`;
+      const cleanId = id.replace(/^(topic-|comp-|scen-)/, '');
+
+      if (id.startsWith('node-') && this.currentView !== 'node-handbook') this.switchView('node-handbook');
+      else if (id.startsWith('js-') && this.currentView !== 'js-handbook') this.switchView('js-handbook');
+      else if (id.startsWith('comp-') && this.currentView !== 'comparisons') this.switchView('comparisons');
+      else if (id.startsWith('scen-') && this.currentView !== 'scenarios') this.switchView('scenarios');
+
+      if (this.readingMode === 'single' && (this.currentView === 'js-handbook' || this.currentView === 'node-handbook')) {
+        this.selectTopic(cleanId);
+        return;
+      }
+
+      setTimeout(() => {
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          targetEl.style.outline = '2px solid #38bdf8';
+          setTimeout(() => targetEl.style.outline = 'none', 2000);
+        }
+      }, 100);
+    }
+
+    copyTopicLink(id) {
+      const url = window.location.href.split('#')[0] + '#' + id;
+      navigator.clipboard.writeText(url).then(() => alert(`Topic link copied: #${id}`));
     }
 
     toggleCardDetails(id) {
@@ -1127,6 +2022,7 @@
     toggleCompleted(id) {
       this.dashboardState.toggleCompleted(id);
       this.updateDashboardStats();
+      this.renderSidebar();
       const card = document.getElementById(`card-${id}`);
       if (card) {
         const isDone = this.dashboardState.isCompleted(id);
@@ -1180,25 +2076,35 @@
     }
 
     scrollToRandomQuestion() {
-      const pool = this.activeTab === 'js' ? this.jsQuestions : this.nodeQuestions;
-      const randomItem = pool[Math.floor(Math.random() * pool.length)];
-      this.searchQuery = '';
-      this.selectedCategory = 'all';
-      this.activeFilter = 'all';
-      const searchInput = document.getElementById('sidebar-search-input');
-      if (searchInput) searchInput.value = '';
-      document.querySelectorAll('.quick-filter-chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-filter') === 'all'));
-      this.renderCategorySidebar();
-      this.renderQuestions();
-      setTimeout(() => {
-        const targetCard = document.getElementById(`card-${randomItem.id}`);
-        if (targetCard) {
-          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          this.toggleCardDetails(randomItem.id);
-          targetCard.style.outline = '2px solid #38bdf8';
-          setTimeout(() => targetCard.style.outline = 'none', 3000);
-        }
-      }, 100);
+      if (this.currentView === 'js-handbook') {
+        const list = this.handbookTopics.js;
+        const item = list[Math.floor(Math.random() * list.length)];
+        this.selectTopic(item.id);
+      } else if (this.currentView === 'node-handbook') {
+        const list = this.handbookTopics.node;
+        const item = list[Math.floor(Math.random() * list.length)];
+        this.selectTopic(item.id);
+      } else {
+        const pool = this.activeQuestionsTab === 'js' ? this.jsQuestions : this.nodeQuestions;
+        const randomItem = pool[Math.floor(Math.random() * pool.length)];
+        this.searchQuery = '';
+        this.selectedCategory = 'all';
+        this.activeFilter = 'all';
+        const searchInput = document.getElementById('sidebar-search-input');
+        if (searchInput) searchInput.value = '';
+        document.querySelectorAll('.quick-filter-chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-filter') === 'all'));
+        this.renderCategorySidebar();
+        this.renderQuestions();
+        setTimeout(() => {
+          const targetCard = document.getElementById(`card-${randomItem.id}`);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            this.toggleCardDetails(randomItem.id);
+            targetCard.style.outline = '2px solid #38bdf8';
+            setTimeout(() => targetCard.style.outline = 'none', 3000);
+          }
+        }, 100);
+      }
     }
 
     updateDashboardStats() {
@@ -1222,8 +2128,8 @@
 
       const badgeJs = document.getElementById('tab-badge-js');
       const badgeNode = document.getElementById('tab-badge-node');
-      if (badgeJs) badgeJs.textContent = `${stats.jsCompleted}/100`;
-      if (badgeNode) badgeNode.textContent = `${stats.nodeCompleted}/100`;
+      if (badgeJs) badgeJs.textContent = '24';
+      if (badgeNode) badgeNode.textContent = '35';
     }
   }
 

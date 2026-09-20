@@ -1,14 +1,23 @@
 // ==========================================================================
 // Question Card Component
-// Full rendering with English + Hinglish, Code Runner, Mistakes, Followups
+// Full rendering with Easy Explanations, Analogies, Code Runner & Deep Dive
 // ==========================================================================
 
-import { CodeSandbox } from './code-sandbox.js';
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 export function renderQuestionCard(q, state, currentLang) {
   const isDone = state.isCompleted(q.id);
   const isBookmarked = state.isBookmarked(q.id);
   const isWeak = state.isWeak(q.id);
+  const mode = state.getMode ? state.getMode() : 'easy';
 
   const priorityBadgeClass = q.priority === 'Must Know' 
     ? 'badge-priority-must-know' 
@@ -17,6 +26,9 @@ export function renderQuestionCard(q, state, currentLang) {
   const diffBadgeClass = q.difficulty === 'Advanced'
     ? 'badge-difficulty-advanced'
     : 'badge-difficulty-intermediate';
+
+  const easyDef = q.easyDefinition;
+  const whatText = easyDef ? (currentLang === 'hinglish' ? (easyDef.whatIsItHi || easyDef.whatIsIt) : easyDef.whatIsIt) : q.shortAnswer;
 
   return `
     <div class="question-card ${isDone ? 'status-completed' : ''} ${q.priority === 'Must Know' ? 'priority-must-know' : ''}" id="card-${q.id}" data-id="${q.id}">
@@ -44,62 +56,88 @@ export function renderQuestionCard(q, state, currentLang) {
         <span class="badge badge-topic">${q.category}</span>
       </div>
 
-      <!-- Short 30s Interview Pitch -->
-      <div class="short-answer-box">
-        <div class="short-answer-label">
-          <span>⚡ 30-Second Interview Pitch</span>
-        </div>
-        <div>${q.shortAnswer}</div>
-      </div>
-
-      <!-- Collapsible Deep Dive Button -->
-      <div class="deep-dive-container">
-        <button class="deep-dive-toggle-btn" id="btn-toggle-${q.id}" onclick="window.app.toggleCardDetails('${q.id}')">
-          <span id="icon-toggle-${q.id}">▶</span> Deep Architectural Breakdown, Hinglish, Code & Interview Strategy
-        </button>
-
-        <div class="deep-dive-content" id="details-${q.id}">
+      ${easyDef ? `
+        <!-- 💡 Easy Explanation Box (Asaan Bhasha & Analogy) -->
+        <div class="easy-explanation-box">
+          <div class="easy-header-badge">
+            <span>💡 Asaan Bhasha Mein Samjhein</span>
+          </div>
           
-          <!-- English Deep Explanation -->
-          <div class="detail-block" style="${currentLang === 'hinglish' ? 'display: none;' : ''}">
-            <div class="detail-block-title deep-title">
-              <span>🏛️ Deep Architectural Explanation</span>
-            </div>
-            <div class="detail-text">${q.deepExplanation}</div>
+          <div class="easy-what-text">
+            ${whatText}
           </div>
 
-          <!-- Hinglish Explanation -->
-          <div class="detail-block" style="${currentLang === 'en' ? 'display: none;' : ''}">
-            <div class="detail-block-title hinglish-title">
-              <span>🇮🇳 Hinglish Explanation (Analogy & Real Life Concept)</span>
-            </div>
-            <div class="detail-text">${q.hinglishExplanation}</div>
-          </div>
-
-          <!-- Real World Production Example -->
-          <div class="detail-block">
-            <div class="detail-block-title production-title">
-              <span>🚀 Real-World Production Architecture</span>
-            </div>
-            <div class="detail-text">${q.productionExample}</div>
-          </div>
-
-          <!-- Code Snippet & Live Sandbox -->
-          ${q.code ? `
-            <div class="code-container">
-              <div class="code-header">
-                <span>Code Example (${q.category})</span>
-                <div class="code-header-actions">
-                  <button class="btn-code-action" onclick="window.app.copyCode('${q.id}')">Copy</button>
-                  <button class="btn-code-action btn-run-code" onclick="window.app.runSandboxCode('${q.id}')">▶ Run Sandbox</button>
-                </div>
+          ${easyDef.analogy ? `
+            <div class="easy-analogy-card">
+              <div class="easy-analogy-label">
+                <span>🍕 Real-Life Example / Kahani</span>
               </div>
-              <pre class="code-block"><code id="code-${q.id}">${escapeHtml(q.code)}</code></pre>
-              <div class="inline-console-output" id="output-${q.id}"></div>
+              <div class="easy-analogy-text">${easyDef.analogy}</div>
             </div>
           ` : ''}
 
-          <!-- Expected Output -->
+          ${easyDef.keyPoints && easyDef.keyPoints.length ? `
+            <div class="easy-points-card">
+              <div class="easy-points-label">
+                <span>🔑 3 Yaad Rakhne Wali Baatein (Key Points)</span>
+              </div>
+              <ul class="easy-points-list">
+                ${easyDef.keyPoints.map(pt => `<li>${pt}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          ${easyDef.interviewLine ? `
+            <div class="easy-interview-card">
+              <div class="easy-interview-label">
+                <span>🗣️ Interview Answer (Speak Confidently)</span>
+              </div>
+              <div class="easy-interview-quote">"${easyDef.interviewLine}"</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : `
+        <div class="short-answer-box">
+          <div class="short-answer-label"><span>⚡ 30-Second Interview Pitch</span></div>
+          <div>${q.shortAnswer}</div>
+        </div>
+      `}
+
+      ${q.code ? `
+        <div class="code-container" style="margin-top: 0.85rem; margin-bottom: 0.85rem;">
+          <div class="code-header">
+            <span>💻 Chhota Code Example (${q.category})</span>
+            <div class="code-header-actions">
+              <button class="btn-code-action" onclick="window.app.copyCode('${q.id}')">Copy</button>
+              <button class="btn-code-action btn-run-code" onclick="window.app.runSandboxCode('${q.id}')">▶ Run Sandbox</button>
+            </div>
+          </div>
+          <pre class="code-block"><code id="code-${q.id}">${escapeHtml(q.code)}</code></pre>
+          <div class="inline-console-output" id="output-${q.id}"></div>
+        </div>
+      ` : ''}
+
+      <div class="deep-dive-container">
+        <button class="deep-dive-toggle-btn" id="btn-toggle-${q.id}" onclick="window.app.toggleCardDetails('${q.id}')">
+          <span id="icon-toggle-${q.id}">▶</span> 🔬 Want Senior MNC Deep Dive? (Architecture, Mistakes & Pro Pitch)
+        </button>
+
+        <div class="deep-dive-content" id="details-${q.id}">
+          <div class="detail-block" style="${currentLang === 'hinglish' ? 'display: none;' : ''}">
+            <div class="detail-block-title deep-title"><span>🏛️ Deep Architectural Explanation</span></div>
+            <div class="detail-text">${q.deepExplanation}</div>
+          </div>
+
+          <div class="detail-block" style="${currentLang === 'en' ? 'display: none;' : ''}">
+            <div class="detail-block-title hinglish-title"><span>🇮🇳 Hinglish Deep Mechanics</span></div>
+            <div class="detail-text">${q.hinglishExplanation}</div>
+          </div>
+
+          <div class="detail-block">
+            <div class="detail-block-title production-title"><span>🚀 Real-World Production Architecture</span></div>
+            <div class="detail-text">${q.productionExample}</div>
+          </div>
+
           ${q.output ? `
             <div class="output-preview-box">
               <div class="output-label">Expected Output</div>
@@ -107,39 +145,22 @@ export function renderQuestionCard(q, state, currentLang) {
             </div>
           ` : ''}
 
-          <!-- Common Mistakes (What fails candidates) -->
           <div class="detail-block">
-            <div class="detail-block-title mistakes-title">
-              <span>⚠️ Common Mistakes (Why Senior Candidates Get Rejected)</span>
-            </div>
+            <div class="detail-block-title mistakes-title"><span>⚠️ Common Mistakes (Why Candidates Get Rejected)</span></div>
             <div class="detail-text">${q.commonMistakes}</div>
           </div>
 
-          <!-- Follow-up Questions -->
           <div class="detail-block">
-            <div class="detail-block-title followup-title">
-              <span>🎯 Common Follow-Up Questions Asked by Interviewers</span>
-            </div>
+            <div class="detail-block-title followup-title"><span>🎯 Common Follow-Up Questions Asked by Interviewers</span></div>
             <div class="detail-text"><strong>${q.followUpQuestions}</strong></div>
           </div>
 
-          <!-- How to Answer in an Interview -->
           <div class="detail-block">
-            <div class="detail-block-title interview-title">
-              <span>💬 "How to Answer in an Interview" (Strategy & Pitch)</span>
-            </div>
+            <div class="detail-block-title interview-title"><span>💬 How to Answer in an Interview (MNC Strategy)</span></div>
             <div class="detail-text">${q.interviewStrategy}</div>
           </div>
-
         </div>
       </div>
     </div>
   `;
-}
-
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
 }

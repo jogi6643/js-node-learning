@@ -48,6 +48,8 @@ class InterviewApp {
     this.attachSidebarEvents();
     this.attachHeroEvents();
 
+    this.updateModeUI(this.dashboardState.getMode());
+
     // Initial render
     this.renderQuestions();
     this.updateDashboardStats();
@@ -67,6 +69,24 @@ class InterviewApp {
     }
     if (tabNode) {
       tabNode.addEventListener('click', () => this.switchTab('node'));
+    }
+
+    // Mode switching (Easy Mode vs Deep Mode)
+    const btnModeEasy = document.getElementById('btn-mode-easy');
+    const btnModeDeep = document.getElementById('btn-mode-deep');
+    if (btnModeEasy) {
+      btnModeEasy.addEventListener('click', () => {
+        this.dashboardState.setMode('easy');
+        this.updateModeUI('easy');
+        this.renderQuestions();
+      });
+    }
+    if (btnModeDeep) {
+      btnModeDeep.addEventListener('click', () => {
+        this.dashboardState.setMode('deep');
+        this.updateModeUI('deep');
+        this.renderQuestions();
+      });
     }
 
     // Global Language Toggle (English <-> Hinglish)
@@ -103,14 +123,28 @@ class InterviewApp {
       btnQuiz.addEventListener('click', () => this.practiceEngine.startQuiz());
     }
 
-    // Mobile Sidebar Toggle
+    // Mobile sidebar toggle
     const btnMobileMenu = document.getElementById('btn-mobile-menu');
+    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
     const sidebar = document.getElementById('app-sidebar');
-    if (btnMobileMenu && sidebar) {
-      btnMobileMenu.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-      });
-    }
+    const backdrop = document.getElementById('sidebar-backdrop');
+
+    const openSidebar = () => {
+      if (sidebar) sidebar.classList.add('open');
+      if (backdrop) backdrop.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebar = () => {
+      if (sidebar) sidebar.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    if (btnMobileMenu) btnMobileMenu.addEventListener('click', openSidebar);
+    if (btnCloseSidebar) btnCloseSidebar.addEventListener('click', closeSidebar);
+    if (backdrop) backdrop.addEventListener('click', closeSidebar);
+    this.closeMobileSidebar = closeSidebar;
   }
 
   applyTheme(theme) {
@@ -118,6 +152,20 @@ class InterviewApp {
     const themeIcon = document.getElementById('theme-icon');
     if (themeIcon) {
       themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+  }
+
+  updateModeUI(mode) {
+    const btnModeEasy = document.getElementById('btn-mode-easy');
+    const btnModeDeep = document.getElementById('btn-mode-deep');
+    if (btnModeEasy && btnModeDeep) {
+      if (mode === 'easy') {
+        btnModeEasy.className = 'mode-btn active-easy';
+        btnModeDeep.className = 'mode-btn';
+      } else {
+        btnModeEasy.className = 'mode-btn';
+        btnModeDeep.className = 'mode-btn active-deep';
+      }
     }
   }
 
@@ -165,9 +213,20 @@ class InterviewApp {
   // ========================================================================
   attachSidebarEvents() {
     const searchInput = document.getElementById('sidebar-search-input');
+    const mainSearchInput = document.getElementById('main-search-input');
+
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value.toLowerCase().trim();
+        if (mainSearchInput) mainSearchInput.value = e.target.value;
+        this.renderQuestions();
+      });
+    }
+
+    if (mainSearchInput) {
+      mainSearchInput.addEventListener('input', (e) => {
+        this.searchQuery = e.target.value.toLowerCase().trim();
+        if (searchInput) searchInput.value = e.target.value;
         this.renderQuestions();
       });
     }

@@ -83,52 +83,52 @@
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #fcfdfe;
+  --bg-card-hover: #f8fafc;
   --bg-elevated: #f1f5f9;
-  --bg-glass: rgba(255, 255, 255, 0.92);
-  --bg-code: #090e1a;
+  --bg-glass: rgba(255, 255, 255, 0.95);
+  --bg-code: #0f172a;
 
   /* Hero & Banner Tokens */
   --bg-hero: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #eff6ff 100%);
   --bg-hero-stat: #ffffff;
   --text-hero-title: #0f172a;
   --text-hero-desc: #475569;
-  --border-hero: rgba(59, 130, 246, 0.25);
-  --hero-glow: rgba(59, 130, 246, 0.06);
+  --border-hero: rgba(37, 99, 235, 0.2);
+  --hero-glow: rgba(37, 99, 235, 0.04);
 
   /* Borders & Dividers */
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-focus: #0284c7;
-  --border-accent: rgba(2, 132, 199, 0.25);
+  --border-subtle: #f1f5f9;
+  --border-medium: #e2e8f0;
+  --border-focus: #2563eb;
+  --border-accent: rgba(37, 99, 235, 0.25);
 
   /* Typography Colors */
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
-  --text-accent: #0284c7;
+  --text-accent: #2563eb;
 
   /* Brand Accents */
   --brand-js: #d97706;
-  --brand-js-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  --brand-js-glow: 0 4px 14px rgba(217, 119, 6, 0.25);
+  --brand-js-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --brand-js-glow: 0 4px 14px rgba(15, 23, 42, 0.2);
 
   --brand-node: #059669;
-  --brand-node-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --brand-node-gradient: linear-gradient(135deg, #065f46 0%, #047857 100%);
   --brand-node-glow: 0 4px 14px rgba(5, 150, 105, 0.25);
 
   /* Visualizer Tokens */
   --bg-viz-board: #f1f5f9;
   --bg-viz-column: #ffffff;
   --bg-viz-item: #e2e8f0;
-  --border-viz: rgba(0, 0, 0, 0.09);
+  --border-viz: rgba(0, 0, 0, 0.08);
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1);
-  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
-  --glass-border: 1px solid rgba(0, 0, 0, 0.07);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 6px 16px -3px rgba(0, 0, 0, 0.04);
+  --glass-border: 1px solid #e2e8f0;
 }
 
 /* Base Reset */
@@ -183,7 +183,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  height: var(--header-height);
+  min-height: var(--header-height);
   background: var(--bg-glass);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -191,7 +191,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.75rem;
+  padding: 0.5rem 1.5rem;
   transition: background var(--transition-normal), border-color var(--transition-normal);
 }
 
@@ -309,9 +309,16 @@ body {
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-medium);
   border-radius: 35px;
-  padding: 4px;
-  gap: 5px;
+  padding: 3px 4px;
+  gap: 3px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+
+.main-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 [data-theme="light"] .main-tabs {
@@ -322,16 +329,18 @@ body {
 .tab-btn {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 1.35rem;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
   border-radius: 30px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all var(--transition-fast);
 }
 
@@ -340,14 +349,19 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Active JS Tab */
-.tab-btn.active.tab-js {
-  background: var(--brand-js-gradient);
-  color: #0f172a;
-  box-shadow: var(--brand-js-glow);
+/* Active Tab States */
+.tab-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
 }
 
-/* Active Node Tab */
+.tab-btn.active.tab-js {
+  background: var(--brand-js-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
 .tab-btn.active.tab-node {
   background: var(--brand-node-gradient);
   color: #ffffff;
@@ -362,12 +376,71 @@ body {
   font-weight: 800;
 }
 
-.tab-btn.active.tab-js .tab-badge {
-  background: rgba(0, 0, 0, 0.15);
-  color: #0f172a;
+.tab-btn.active .tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
+
+.tab-btn.active.tab-js .tab-badge {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
 .tab-btn.active.tab-node .tab-badge {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Light Mode Overrides for Main Tabs */
+[data-theme="light"] .main-tabs {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .tab-btn {
+  color: #475569;
+}
+
+[data-theme="light"] .tab-btn:hover {
+  color: #0f172a;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .tab-badge {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+[data-theme="light"] .tab-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+}
+
+[data-theme="light"] .tab-btn.active .tab-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+[data-theme="light"] .tab-btn.active.tab-js {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+}
+
+[data-theme="light"] .tab-btn.active.tab-js .tab-badge {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+[data-theme="light"] .tab-btn.active.tab-node {
+  background: #065f46;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(6, 95, 70, 0.25);
+}
+
+[data-theme="light"] .tab-btn.active.tab-node .tab-badge {
+  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
 }
 
@@ -425,6 +498,22 @@ body {
   color: var(--text-muted);
 }
 
+[data-theme="light"] .lang-toggle-btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .lang-indicator .lang-tag.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .lang-indicator .lang-tag.inactive {
+  color: #64748b;
+}
+
 .icon-btn {
   width: 40px;
   height: 40px;
@@ -446,6 +535,17 @@ body {
   border-color: var(--border-focus);
   background: var(--bg-card-hover);
   transform: translateY(-1px);
+}
+
+[data-theme="light"] .icon-btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+[data-theme="light"] .icon-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
 }
 
 .btn-nav-pill {
@@ -474,6 +574,24 @@ body {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2));
   border-color: rgba(56, 189, 248, 0.4);
   color: #38bdf8;
+}
+
+[data-theme="light"] .btn-nav-pill {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+[data-theme="light"] .btn-nav-pill:hover {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  background: #f8fafc;
+}
+
+[data-theme="light"] .btn-nav-pill.highlight {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
 }
 
 /* ==========================================================================
@@ -833,10 +951,70 @@ body {
 }
 
 /* ==========================================================================
-   Comprehensive Mobile & Tablet Responsive Architecture
+   Comprehensive Mobile, Tablet & Laptop Responsive Architecture
    ========================================================================== */
 
-/* Tablet & Smaller Laptops (<= 1024px) */
+/* Laptops, Tablets & Window Resizing (<= 1200px) */
+@media (max-width: 1200px) {
+  :root {
+    --header-height: auto;
+  }
+
+  .site-header {
+    flex-wrap: wrap;
+    padding: 0.65rem 1.25rem 0.55rem 1.25rem;
+    gap: 0.5rem;
+    height: auto;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .header-actions {
+    order: 2;
+    margin-left: auto;
+    gap: 0.5rem;
+  }
+
+  /* Main Navigation Tabs: Clean Full-Width Horizontally Scrollable Bar */
+  .main-tabs {
+    width: 100%;
+    order: 3;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: 4px;
+    margin-top: 0.15rem;
+    scrollbar-width: none;
+    border-radius: 24px;
+  }
+
+  .main-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.42rem 0.85rem;
+    font-size: 0.84rem;
+    gap: 0.45rem;
+  }
+
+  .tab-badge {
+    font-size: 0.68rem;
+    padding: 0.1rem 0.4rem;
+  }
+}
+
+/* Tablet & Smaller Screens (<= 1024px) */
 @media (max-width: 1024px) {
   .mobile-menu-btn {
     display: flex;
@@ -870,79 +1048,42 @@ body {
   }
 
   .app-main {
-    padding: 1.5rem 1.25rem 4rem 1.25rem;
-  }
-
-  .site-header {
-    padding: 0 1.25rem;
+    padding: 1.25rem 1rem 4rem 1rem;
   }
 }
 
 /* Tablets & Mobile Screens (<= 768px) */
 @media (max-width: 768px) {
-  :root {
-    --header-height: auto;
-  }
-
   .site-header {
-    flex-wrap: wrap;
-    padding: 0.75rem 1rem;
-    gap: 0.65rem;
+    padding: 0.55rem 0.85rem;
+    gap: 0.45rem;
   }
 
   .header-left {
-    flex: 1;
-    min-width: 130px;
+    min-width: 120px;
   }
 
   .brand-badge-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
   }
 
   .brand-title {
-    font-size: 1.05rem;
-  }
-
-  .brand-subtitle {
-    display: none;
+    font-size: 1rem;
   }
 
   .header-actions {
-    order: 2;
-    margin-left: auto;
-    gap: 0.45rem;
+    gap: 0.35rem;
   }
 
   .btn-nav-pill {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.76rem;
-  }
-
-  /* Two Main Tabs: Full Width Centered Row */
-  .main-tabs {
-    width: 100%;
-    order: 3;
-    justify-content: stretch;
-    margin-top: 0.25rem;
-  }
-
-  .tab-btn {
-    flex: 1;
-    justify-content: center;
-    padding: 0.48rem 0.5rem;
-    font-size: 0.85rem;
-    gap: 0.45rem;
-  }
-
-  .tab-badge {
-    font-size: 0.68rem;
-    padding: 0.1rem 0.4rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.74rem;
   }
 
   .app-main {
-    padding: 1rem 0.85rem 4rem 0.85rem;
+    padding: 1rem 0.75rem 4rem 0.75rem;
   }
 
   /* Hero Section Mobile */

@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Senior JavaScript & Node.js Interview Preparation (8+ Years MNC Level)</title>
-  <meta name="description" content="Curated 100 JavaScript and 100 Node.js senior interview topics, deep architectural breakdowns, Hinglish explanations, production examples, and interactive visualizers for 8+ years backend engineers.">
+  <title>JavaScript & Node.js</title>
+  <meta name="description"
+    content="Curated 100 JavaScript and 100 Node.js senior interview topics, deep architectural breakdowns, Hinglish explanations, production examples, and interactive visualizers for 8+ years backend engineers.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 
   <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/components.css">
   <link rel="stylesheet" href="./css/visualizers.css">
 </head>
+
 <body>
 
   <!-- Site Header -->
@@ -26,30 +31,38 @@
         <span>☰</span>
       </button>
       <a href="#" class="header-brand">
-        <div class="brand-badge-icon">
-          <span style="font-weight: 900; font-size: 1.1rem; color: #38bdf8;">JS</span>
-        </div>
         <div class="brand-title-wrap">
           <div class="brand-title">
-            <span class="highlight-js">JS</span> + <span class="highlight-node">Node.js</span> Master
-          </div>
-          <div class="brand-subtitle">
-            <span>Interview Prep</span>
-            <span class="experience-tag">8+ Years MNC</span>
+            <span class="highlight-js">JS</span> + <span class="highlight-node">Node.js</span>
           </div>
         </div>
       </a>
     </div>
 
-    <!-- Two Main Tabs -->
-    <nav class="main-tabs" aria-label="Main Navigation Tabs">
-      <button class="tab-btn active tab-js" id="tab-btn-js">
-        <span>⚡ JavaScript</span>
-        <span class="tab-badge" id="tab-badge-js">0/100</span>
+    <!-- Main Navigation Tabs -->
+    <nav class="main-tabs" aria-label="Main Navigation Tabs" id="main-nav-tabs">
+      <button class="tab-btn active tab-js" id="tab-btn-js" data-view="js-handbook">
+        <span>⚡ JS</span>
+        <span class="tab-badge" id="tab-badge-js">24</span>
       </button>
-      <button class="tab-btn tab-node" id="tab-btn-node">
+      <button class="tab-btn tab-node" id="tab-btn-node" data-view="node-handbook">
         <span>🟢 Node.js</span>
-        <span class="tab-badge" id="tab-badge-node">0/100</span>
+        <span class="tab-badge" id="tab-badge-node">35</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-comparisons" data-view="comparisons">
+        <span>⚖️ Comparisons</span>
+        <span class="tab-badge">10</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-scenarios" data-view="scenarios">
+        <span>🚨 Scenarios</span>
+        <span class="tab-badge">6</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-revision" data-view="revision">
+        <span>⚡ Revision</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-questions" data-view="questions">
+        <span>🎯 Questions</span>
+        <span class="tab-badge" id="tab-badge-q-count">200</span>
       </button>
     </nav>
 
@@ -57,16 +70,16 @@
     <div class="header-actions">
       <!-- English <-> Hinglish Mode Switcher -->
       <button class="lang-toggle-btn" id="btn-lang-toggle" title="Toggle English / Hinglish Explanations">
-        <span>🌐 Mode:</span>
+        <span>🌐</span>
         <span class="lang-indicator">
-          <span class="lang-tag active" id="lang-tag-en">EN</span>
-          <span class="lang-tag inactive" id="lang-tag-hi">HINGLISH</span>
+          <span class="lang-tag inactive" id="lang-tag-en">EN</span>
+          <span class="lang-tag active" id="lang-tag-hi">HINGLISH</span>
         </span>
       </button>
 
       <!-- Practice Shortcuts -->
       <button class="btn-nav-pill highlight" id="btn-nav-mock" title="Start Mock Interview Simulator">
-        <span>🎙️ Mock Interview</span>
+        <span>🎙️ Mock</span>
       </button>
       <button class="btn-nav-pill" id="btn-nav-quiz" title="Take Senior MCQ Quiz">
         <span>📝 Quiz</span>
@@ -84,30 +97,23 @@
 
   <!-- App Layout -->
   <div class="app-container">
-    
-    <!-- Sidebar Navigation & Filters -->
+
+    <!-- Sidebar Navigation & Table of Contents -->
     <aside class="app-sidebar" id="app-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-mobile-title-bar">
-          <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Navigation & Filters</span>
+          <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Table of Contents</span>
           <button class="icon-btn btn-close-sidebar" id="btn-close-sidebar" aria-label="Close Sidebar">✕</button>
         </div>
         <div class="sidebar-search-box">
           <span class="sidebar-search-icon">🔍</span>
-          <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search 200 questions, concepts..." />
-        </div>
-
-        <div class="filter-category-title">Quick Filters</div>
-        <div class="quick-filters">
-          <button class="quick-filter-chip active" data-filter="all">All</button>
-          <button class="quick-filter-chip" data-filter="must-know">★ Must Know</button>
-          <button class="quick-filter-chip" data-filter="completed">✓ Completed</button>
-          <button class="quick-filter-chip" data-filter="bookmarked">★ Revision</button>
-          <button class="quick-filter-chip" data-filter="weak">🚩 Weak Topics</button>
+          <input type="text" class="sidebar-search-input" id="sidebar-search-input"
+            placeholder="Search topic (e.g. Closure, Event loop)..." />
         </div>
       </div>
 
-      <div class="filter-category-title" style="margin-left: 1.25rem;">Topics & Categories</div>
+      <div class="filter-category-title" id="sidebar-section-title" style="margin-left: 1.25rem;">Table of Contents
+      </div>
       <div class="category-filter-list" id="sidebar-category-list">
         <!-- Injected via JavaScript -->
       </div>
@@ -115,119 +121,79 @@
 
     <!-- Main Content Stream -->
     <main class="app-main">
-      
-      <!-- Hero Progress Dashboard -->
-      <section class="hero-dashboard">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <h1 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em;">Senior Technical Interview Preparation</h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 0.3rem;">
-              Focused exclusively on the <strong>Top 100 JavaScript</strong> and <strong>Top 100 Node.js</strong> high-frequency questions for Senior, Staff, and MNC Technical Rounds.
-            </p>
+
+      <!-- Chapter Navigation Control Bar (Super Easy Direct Nav) -->
+      <section class="chapter-nav-bar" id="chapter-nav-bar">
+        <div class="chapter-nav-left">
+          <button class="nav-step-btn" id="nav-btn-prev" title="Previous Topic (Shortcut: Left Arrow ←)">
+            <span>← Prev</span>
+          </button>
+
+          <div class="chapter-dropdown-wrapper">
+            <span class="chapter-dropdown-icon">📖</span>
+            <select class="chapter-dropdown-select" id="chapter-dropdown-select" aria-label="Jump directly to topic">
+              <!-- Dynamically populated -->
+            </select>
           </div>
 
-          <div class="hero-cta-group">
-            <button class="btn-cta btn-cta-primary" id="hero-btn-random">🎲 Random Question</button>
-            <button class="btn-cta btn-cta-secondary" id="hero-btn-mock">🎙️ Interview Mode</button>
-            <button class="btn-cta btn-cta-secondary" id="hero-btn-scenarios">🚨 Outages Lab</button>
-            <button class="btn-cta btn-cta-secondary" id="hero-btn-output">💻 Output Lab</button>
-          </div>
+          <button class="nav-step-btn" id="nav-btn-next" title="Next Topic (Shortcut: Right Arrow →)">
+            <span>Next →</span>
+          </button>
+
+          <span class="chapter-counter-pill" id="chapter-counter-pill">Topic 1 of 24</span>
         </div>
 
-        <!-- Dashboard Stats Grid -->
-        <div class="dashboard-stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">
-              <span>JavaScript Progress</span>
-              <span>⚡</span>
-            </div>
-            <div class="stat-value" id="stat-val-js">0 / 100</div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill fill-js" id="fill-js" style="width: 0%;"></div>
-            </div>
+        <div class="chapter-nav-right">
+          <!-- Quick Search -->
+          <div class="chapter-search-box">
+            <span style="opacity: 0.65;">🔍</span>
+            <input type="text" id="main-search-input" placeholder="Quick search..." />
           </div>
 
-          <div class="stat-card">
-            <div class="stat-label">
-              <span>Node.js Progress</span>
-              <span>🟢</span>
-            </div>
-            <div class="stat-value" id="stat-val-node">0 / 100</div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill fill-node" id="fill-node" style="width: 0%;"></div>
-            </div>
+          <!-- Reading Mode Switcher: Single Topic Focus vs View All -->
+          <div class="view-mode-toggle" id="view-mode-toggle-group">
+            <button class="view-mode-btn active" id="btn-mode-single" title="Read one topic at a time like a book">📖
+              Single</button>
+            <button class="view-mode-btn" id="btn-mode-all" title="View all topics in one scrollable page">📜
+              All</button>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-label">
-              <span>Overall Readiness</span>
-              <span>🎯</span>
-            </div>
-            <div class="stat-value" id="stat-val-overall">0%</div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill fill-overall" id="fill-overall" style="width: 0%;"></div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">
-              <span>Revision Bucket</span>
-              <span>📌</span>
-            </div>
-            <div class="stat-value" id="stat-val-revision" style="font-size: 1.35rem;">0 Saved</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">Starred & Weak Topics</div>
-          </div>
-        </div>
-
-        <!-- Workflow Journey Bar -->
-        <div class="journey-bar">
-          <div class="journey-step">
-            <span class="step-num">1</span>
-            <span>Start</span>
-          </div>
-          <span class="journey-arrow">→</span>
-          <div class="journey-step">
-            <span class="step-num">2</span>
-            <span>Learn Architecture</span>
-          </div>
-          <span class="journey-arrow">→</span>
-          <div class="journey-step">
-            <span class="step-num">3</span>
-            <span>Interactive Practice</span>
-          </div>
-          <span class="journey-arrow">→</span>
-          <div class="journey-step">
-            <span class="step-num">4</span>
-            <span>Mark Complete</span>
-          </div>
-          <span class="journey-arrow">→</span>
-          <div class="journey-step">
-            <span class="step-num">5</span>
-            <span>Revise Weak Areas</span>
-          </div>
+          <button class="btn-cta btn-cta-secondary" id="hero-btn-toggle-viz"
+            style="font-size: 0.8rem; padding: 0.38rem 0.75rem;">⚡ Event Loop Lab</button>
         </div>
       </section>
 
-      <!-- Interactive Learning Hub: Event Loop & System Architecture Visualizers -->
-      <section id="event-loop-viz-container"></section>
-      <section id="system-diagrams-viz-container"></section>
-
-      <!-- Questions List Section -->
-      <section>
-        <div class="content-toolbar">
-          <div class="content-title-group">
-            <h2 class="content-heading" id="content-heading-title">JavaScript Senior Interview Questions</h2>
-            <span class="content-count-tag" id="content-count-tag">100 Questions</span>
+      <!-- Collapsible Interactive Learning Hub: Event Loop & Architecture -->
+      <div class="collapsible-viz-box" id="collapsible-viz-container" style="display: none;">
+        <div class="collapsible-viz-header" id="collapsible-viz-header">
+          <div
+            style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 0.92rem; color: #38bdf8;">
+            <span>⚡ Interactive Event Loop & Architecture Lab</span>
           </div>
+          <span id="collapsible-viz-arrow" style="font-size: 0.85rem; color: var(--text-muted);">✕ Close Lab</span>
         </div>
+        <div class="collapsible-viz-content" id="collapsible-viz-body">
+          <section id="event-loop-viz-container"></section>
+          <section id="system-diagrams-viz-container"></section>
+        </div>
+      </div>
 
-        <!-- Dynamic Questions List -->
-        <div class="questions-list" id="questions-list-container">
-          <!-- Injected via JavaScript -->
-        </div>
-      </section>
+      <!-- Main Dynamic Content List -->
+      <div class="questions-list" id="questions-list-container">
+        <!-- Injected via JavaScript -->
+      </div>
 
     </main>
+  </div>
+
+  <!-- Mobile Floating Bottom Bar for One-Thumb Chapter Navigation -->
+  <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mobile-nav-arrow" id="mobile-btn-prev" title="Previous Topic">← Prev</button>
+    <button class="mobile-nav-toc" id="mobile-btn-toc" title="Open Chapter Table of Contents">
+      <span id="mobile-toc-label" style="font-weight: 800;">📖 Topic 1 of 24</span>
+      <span style="font-size: 0.68rem; opacity: 0.75;">Tap to browse list ▾</span>
+    </button>
+    <button class="mobile-nav-arrow" id="mobile-btn-next" title="Next Topic">Next →</button>
   </div>
 
   <!-- Practice / Quiz / Scenarios Modal Window -->
@@ -244,6 +210,10 @@
   </div>
 
   <!-- Universal Scripts: 100% works on both file:// (double-click) and http:// (GitHub Pages) -->
+  <script src="./js/data/handbook-topics.js"></script>
+  <script src="./js/data/comparisons.js"></script>
+  <script src="./js/data/senior-scenarios.js"></script>
+  <script src="./js/data/quick-revision.js"></script>
   <script src="./js/data/js-questions.js"></script>
   <script src="./js/data/node-questions.js"></script>
   <script src="./js/bundle.js"></script>
@@ -261,4 +231,5 @@
     }
   </script>
 </body>
+
 </html>

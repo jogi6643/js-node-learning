@@ -23,8 +23,9 @@ export class DashboardState {
       completed: {},  // { 'js-1': true, 'node-5': true }
       bookmarked: {}, // { 'js-3': true }
       weak: {},       // { 'node-2': true }
-      lang: 'en',     // 'en' or 'hinglish'
-      theme: 'dark'   // 'dark' or 'light'
+      lang: 'hinglish', // default to Hinglish
+      theme: 'dark',
+      mode: 'easy'    // 'easy' or 'deep'
     };
   }
 
@@ -78,13 +79,22 @@ export class DashboardState {
     return !!this.state.weak[id];
   }
 
+  setMode(mode) {
+    this.state.mode = mode;
+    this.save();
+  }
+
+  getMode() {
+    return this.state.mode || 'easy';
+  }
+
   setLanguage(lang) {
     this.state.lang = lang;
     this.save();
   }
 
   getLanguage() {
-    return this.state.lang || 'en';
+    return this.state.lang || 'hinglish';
   }
 
   setTheme(theme) {
